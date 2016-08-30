@@ -11,6 +11,7 @@ class FlyersController extends Controller
 {
     public function create()
     {
+        flash()->overlay('Welcome On board', 'Thank you for joining us');
         return view('pages.create');
     }
 
@@ -19,7 +20,8 @@ class FlyersController extends Controller
         Flyer::create($request->all());
 
         // flash message
+        flash()->success('Congrats', 'Flyer successfully created');
 
-        return redirect()->back();
+        return redirect()->back(); // temp
     }
 }

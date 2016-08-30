@@ -12,4 +12,8 @@
             Create a Flyer
         </a>
     </div>
+
+    <script type="text/javascript">
+        swal("Hello world!");
+    </script>
 @stop
