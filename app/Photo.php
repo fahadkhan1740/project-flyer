@@ -5,29 +5,48 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 
+use Image;
 class Photo extends Model
 {
     protected $table = 'flyer_photos';
 
-    protected $fillable = ['path'];
+    protected $fillable = ['path', 'name', 'thumbnail_name'];
 
-    protected $baseDir = 'flyers/photos';
+    protected $baseDir = 'flyer/photos';
 
     public function flyer()
     {
         return $this->belongsTo('App\Flyer');
     }
 
-    public static function fromForm(UploadedFile $file)
+    public static function named($name)
     {
-        $photo = new static;
 
-        $name = time() . $file->getClientOriginalName();
+        return (new static)->saveAs($name);
 
-        $photo->path = $photo->baseDir. '/' .$name;
+    }
 
-        $file->move($photo->baseDir, $name);
+    protected function saveAs($name)
+    {
+        $this->name = sprintf("%s-%s", time(), $name);
+        $this->path = sprintf("%s/%s", $this->baseDir, $this->name);
+        $this->thumbnail_path = sprintf("%s/tn-%s", $this->baseDir, $this->name);
 
-        return $photo;
+        return $this;
+    }
+
+    public function move(UploadedFile $file)
+    {
+        $file->move($this->baseDir, $this->name);
+
+        $this->makeThumbnail();
+
+        return $this;
+    }
+
+    public function makeThumbnail()
+    {
+        Image::make($this->path)->fit(200)->save($this->thumbnail_path);
+
     }
 }
