@@ -8,17 +8,24 @@ use App\Http\Requests;
 use App\Flyer;
 use App\Photo;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Auth;
+
+//use App\Http\Controllers\MyTraits\AuthorizesUsers;
 
 class FlyersController extends Controller
 {
+    //use AuthorizesUsers;
+    public $user;
+
     public function __construct()
     {
         $this->middleware('auth', ['except' => 'show']);
+        $this->user = Auth::user();
     }
 
     public function create()
     {
-        flash()->overlay('Welcome On board', 'Thank you for joining us');
+        //flash()->overlay('Welcome On board', 'Thank you for joining us');
         return view('pages.create');
     }
 
@@ -39,17 +46,34 @@ class FlyersController extends Controller
         return view('flyers.show', compact('flyer'));
     }
 
-    public function addPhoto($zip, $street, Request $request)
+    public function addPhoto($zip, $street, Requests\ChangeFlyerRequest $request)
     {
-        $this->validate($request,[
-            'photo' => 'required|mimes:jpg,jpeg,png,bmp'
-        ]);
-
         $photo = $this->makePhoto($request->file('photo'));
 
         Flyer::locatedAt($zip, $street)->addPhoto($photo);
 
         return 'Done';
+    }
+
+    protected function userCreatedFlyer(Request $request)
+    {
+     /*   return Flyer::where([
+            'zip' => $request->zip,
+            'street' => $request->street,
+            'user_id' => $this->user->id
+        ])->exists();*/
+    }
+
+    protected function unauthorized(Request $request)
+    {
+        if($request->ajax())
+        {
+            return response(['message' => 'No way, Not at all'], 403);
+        }
+
+        flash('No way, Not at all');
+
+        return redirect('/');
     }
 
     protected function makePhoto(UploadedFile $file)
